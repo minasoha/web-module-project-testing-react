@@ -1,26 +1,105 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
-import Show from './../Show';
+import Show from "./../Show";
 
 const testShow = {
-    //add in approprate test data structure here.
-}
+  //add in approprate test data structure here.
+  name: "Test Series",
+  summary: "A test summary",
+  image: {
+    medium:
+      "https://static.tvmaze.com/uploads/images/medium_portrait/200/501942.jpg",
+    original:
+      "https://static.tvmaze.com/uploads/images/original_untouched/200/501942.jpg",
+  },
+  seasons: [
+    {
+      id: 0,
+      name: "Test 1",
+      episodes: [],
+    },
+    {
+      id: 1,
+      name: "Test 2",
+      episodes: [],
+    },
+    {
+      id: 2,
+      name: "Test 3",
+      episodes: [],
+    },
+    {
+      id: 3,
+      name: "Test 4",
+      episodes: [],
+    },
+  ],
+};
 
-test('renders testShow and no selected Season without errors', ()=>{
+test("renders testShow and no selected Season without errors", () => {
+  render(<Show show={testShow} selectedSeason={"none"} />);
+  const name = screen.queryByText(/test series/i);
+  const summary = screen.queryByText(/a test summary/i);
+  const showContainer = screen.queryByTestId("show-container");
+
+  expect(name).toBeInTheDocument();
+  expect(summary).toBeInTheDocument();
+  expect(showContainer).toBeInTheDocument();
 });
 
-test('renders Loading component when prop show is null', () => {
+test("renders Loading component when prop show is null", () => {
+  render(<Show show={null} selectedSeason={"none"} />);
+
+  const loadingContainer = screen.queryByTestId("loading-container");
+  const loadingString = screen.queryByText(/fetching data.../i);
+  const showContainer = screen.queryByTestId("show-container");
+
+  expect(loadingContainer).toBeInTheDocument();
+  expect(loadingString).toBeInTheDocument();
+  expect(showContainer).not.toBeInTheDocument();
 });
 
-test('renders same number of options seasons are passed in', ()=>{
+test("renders same number of options seasons are passed in", () => {
+  render(<Show show={testShow} selectedSeason={"none"} />);
+
+  const options = screen.queryAllByTestId("season-option");
+
+  expect(options).toHaveLength(4);
+  expect(options).not.toHaveLength(0);
 });
 
-test('handleSelect is called when an season is selected', () => {
+test("handleSelect is called when an season is selected", () => {
+  const mockHandleSelect = jest.fn();
+
+  render(
+    <Show
+      show={testShow}
+      selectedSeason={"none"}
+      handleSelect={mockHandleSelect}
+    />
+  );
+
+  const options = screen.queryByLabelText(/select a season/i);
+
+  userEvent.selectOptions(options, ["1"]);
+
+  expect(mockHandleSelect).toBeCalledTimes(1);
 });
 
-test('component renders when no seasons are selected and when rerenders with a season passed in', () => {
+test("component renders when no seasons are selected and when rerenders with a season passed in", () => {
+  const { rerender } = render(<Show show={testShow} selectedSeason={"none"} />);
+
+  let episodeContainer = screen.queryByTestId("episodes-container");
+
+  expect(episodeContainer).not.toBeInTheDocument();
+
+  rerender(<Show show={testShow} selectedSeason={"1"} />);
+
+  episodeContainer = screen.queryByTestId("episodes-container");
+
+  expect(episodeContainer).toBeInTheDocument();
 });
 
 //Tasks:
